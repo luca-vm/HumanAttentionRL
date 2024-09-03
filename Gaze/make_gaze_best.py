@@ -14,9 +14,6 @@ warnings.filterwarnings('ignore')
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
-
-
-
 def preprocess(image):
     """Warp frames to 84x84 as done in the Nature paper and later work."""
     width = 84
@@ -51,7 +48,7 @@ class Dataset:
                     gaze_pos = []  # Handle any conversion issues
 
                 if lbl == "null":  # end of file
-                    break
+                    continue
 
                 frame_ids.append(frame_id)
                 lbls.append(int(lbl))
@@ -233,8 +230,12 @@ def create_saliency_model(input_shape=(84, 84, 4)):
 
 
 def main():
-    tar_file = './breakout/92_RZ_3504740_Aug-23-11-27-56.tar.bz2'
-    label_file = './breakout/92_RZ_3504740_Aug-23-11-27-56.txt'
+    # tar_file = './ms_pacman/combined_data.tar.bz2'
+    # label_file = './ms_pacman/combined_data.txt'
+    
+    tar_file = './ms_pacman/52_RZ_2394668_Aug-10-14-52-42.tar.bz2'
+    label_file = './ms_pacman/52_RZ_2394668_Aug-10-14-52-42.txt'
+    
     
     # Load and preprocess data
     dataset = Dataset(tar_file, label_file)
@@ -251,18 +252,17 @@ def main():
     model.compile(loss=my_kld, optimizer=opt)
     # model.compile(optimizer='adam', loss='mean_squared_error')
 
-    with tf.GradientTape() as tape:
-        predictions = model(dataset.gaze_imgs)
-        loss = my_kld(dataset.gaze_maps, predictions)
-    gradients = tape.gradient(loss, model.trainable_variables)
-    print("Gradients stats: ", [g.numpy().min() for g in gradients], [g.numpy().max() for g in gradients])
+    # with tf.GradientTape() as tape:
+    #     predictions = model(dataset.gaze_imgs)
+    #     loss = my_kld(dataset.gaze_maps, predictions)
+    # gradients = tape.gradient(loss, model.trainable_variables)
+    # print("Gradients stats: ", [g.numpy().min() for g in gradients], [g.numpy().max() for g in gradients])
     	
     
     BATCH_SIZE = 50
     num_epoch = 50
     model.fit(dataset.gaze_imgs, dataset.gaze_maps, BATCH_SIZE, epochs=num_epoch, shuffle=True, verbose=2)
-
-
+    model.save("gaze.hdf5")
     
 
 
