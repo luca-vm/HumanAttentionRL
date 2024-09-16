@@ -20,18 +20,18 @@ from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 # WandB initialization
 wandb.login(key='ed8dd6f4ee07699f2e9c1d9a3ffec3b84b45c4b6')
 
-BATCH_SIZE = 512
+BATCH_SIZE = 128
 BUFF_SIZE = 40000
-num_epoch = 50
-lr = 0.75
+num_epoch = 60
+lr = 1.0
 r = 0.95
-dropout = 0.4
-regularization_factor=0.001
+dropout = 0.3
+regularization_factor=0.01
 epsilon=1e-08
 
 # Initialize WandB run
 run = wandb.init(
-    project="Gaze-Prediction-test",
+    project="Gaze-Prediction",
     config={
         "batch_size": BATCH_SIZE,
         "epochs": num_epoch,
@@ -210,7 +210,7 @@ class TrainingLogger(K.callbacks.Callback):
         
 early_stopping = EarlyStopping(
         monitor='val_loss',
-        patience=10,
+        patience=20,
         verbose=1,
         mode='min',
         restore_best_weights=True

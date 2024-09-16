@@ -94,11 +94,27 @@ class Dataset:
     def generate_gaze_map(self, frame_id):
         gaze_map = np.zeros((84, 84, 1), dtype=np.float32)
         positions = self.gaze_positions.get(frame_id, [])
+
         for x, y in zip(positions[::2], positions[1::2]):
             x, y = int(x * 84 / 160), int(y * 84 / 210)
             if 0 <= x < 84 and 0 <= y < 84:
-                gaze_map[y, x] = 1
+                # Create a temporary map with a bright center at the gaze position
+                temp_map = np.zeros((84, 84), dtype=np.float32)
+                cv2.circle(temp_map, (x, y), 1, 1, -1)  # A small bright circle in the center
+
+                # Apply Gaussian blur to create a smooth fading effect
+                temp_map = cv2.GaussianBlur(temp_map, (5, 5), 0)
+
+                # Add the blurred map to the gaze map
+                gaze_map[:, :, 0] += temp_map
+
+        # Normalize the gaze map to keep values between 0 and 1
+        gaze_map = np.clip(gaze_map, 0, 1)
+
         return gaze_map
+
+
+
 
     def create_stacked_obs(self, imgs_deque):
         stack = list(imgs_deque)
@@ -162,6 +178,8 @@ class Dataset:
         dataset = dataset.prefetch(tf.data.AUTOTUNE)
         
         return dataset
+    
+
 
     def get_steps_per_epoch(self, batch_size):
         return self.train_size // batch_size
